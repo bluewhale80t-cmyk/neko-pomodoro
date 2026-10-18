@@ -136,21 +136,29 @@
 
 <script>
 /* =========================================================
-   設定:背景画像と時間帯
-   画像が増えたら BACKGROUNDS に追加するだけ。
-   null の場所は仮のグラデーション(雨は晴れ画像+雨演出)になる。
+   設定:背景画像
+   1行 = 1枚。from時〜to時の手前まで表示される(to:22 なら 21:59 まで)。
+   日をまたぐ場合は from:22, to:5 のように書けばOK。
+   該当する絵がない時間帯は仮のグラデーション、
+   雨の日に雨用の絵がなければ晴れの絵+雨の演出になる。
    ========================================================= */
-const BACKGROUNDS = {
-  sunny: { morning: null, afternoon: null, night: "img/sunny_night.webp", midnight: null },
-  rainy: { morning: null, afternoon: null, night: null, midnight: null },
-};
+const BG_SLOTS = [
+  { weather: "sunny", from: 18, to: 21, src: "img/sunny_night.webp" },    // 18:00〜20:59
+  { weather: "sunny", from: 21, to: 22, src: "img/sunny_night21.webp" },  // 21:00〜21:59
+];
 
-// 時間帯の区切り(時)
+// セリフ用の時間帯の区切り(時)
 function getPeriod(h){
   if (h >= 5  && h < 11) return "morning";
   if (h >= 11 && h < 18) return "afternoon";
-  if (h >= 18 && h < 21) return "night";     // 18:00〜20:59
-  return "midnight";
+  if (h >= 18 && h < 22) return "night";     // 18:00〜21:59
+  return "midnight";                          // 22:00〜4:59
+}
+
+function findBg(weather, h){
+  const hit = BG_SLOTS.find(s => s.weather === weather &&
+    (s.from < s.to ? (h >= s.from && h < s.to) : (h >= s.from || h < s.to)));
+  return hit ? hit.src : null;
 }
 
 /* ===== セリフ ===== */
@@ -198,10 +206,14 @@ function renderCount(){ document.getElementById("count").textContent = `🍅 ${g
 /* ===== 背景 ===== */
 const bgA = document.getElementById("bgA"), bgB = document.getElementById("bgB");
 let frontBg = bgA, currentBgKey = "";
-function setBackground(period, weather){
-  let src = BACKGROUNDS[weather][period];
-  if (!src && weather === "rainy") src = BACKGROUNDS.sunny[period];   // 雨画像がなければ晴れで代用
+function setBackground(hour, weather){
+  const period = getPeriod(hour);
+  const own = findBg(weather, hour);
+  let src = own;
+  if (!src && weather === "rainy") src = findBg("sunny", hour);   // 雨画像がなければ晴れで代用
   const key = src || "ph-" + period;
+  // 雨用の画像がまだない雨の日は、雨粒の演出を重ねる
+  rainCanvas.classList.toggle("on", weather === "rainy" && !own);
   if (key === currentBgKey) return;
   currentBgKey = key;
   const back = frontBg === bgA ? bgB : bgA;
@@ -209,8 +221,6 @@ function setBackground(period, weather){
   back.style.backgroundImage = "";
   if (src) back.style.backgroundImage = `url("${src}")`; else back.classList.add("ph-" + period);
   requestAnimationFrame(() => { back.classList.remove("hidden"); frontBg.classList.add("hidden"); frontBg = back; });
-  // 雨用の画像がまだない雨の日は、雨粒の演出を重ねる
-  rainCanvas.classList.toggle("on", weather === "rainy" && !BACKGROUNDS.rainy[period]);
 }
 
 /* ===== 雨の演出 ===== */
@@ -341,7 +351,7 @@ function tick(){
   render();
   const now = new Date();
   el.clock.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
-  setBackground(getPeriod(now.getHours()), getWeather());
+  setBackground(now.getHours(), getWeather());
 }
 
 /* ===== 音とバイブ ===== */
