@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2a2440">
+<title>猫ポモドーロ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --glass: rgba(30,24,52,.42);
+    --glass-line: rgba(255,255,255,.18);
+    --text: #fff8ef;
+    --accent: #ffc58a;
+    --rest: #9fe0c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:#1d1830;color:var(--text);
+    font-family:"M PLUS Rounded 1c",system-ui,sans-serif;user-select:none}
+
+  /* 背景(2枚を重ねてクロスフェード) */
+  .bg{position:fixed;inset:0;background-size:cover;background-position:center;
+    transition:opacity 1.6s ease}
+  .bg.hidden{opacity:0}
+
+  /* 時間帯ごとの仮背景(画像が揃うまで) */
+  .ph-morning  {background:linear-gradient(160deg,#f7c9a8,#c9b7e6 60%,#8e86c9)}
+  .ph-afternoon{background:linear-gradient(160deg,#9fd3f2,#d9ecf7 55%,#f3e2c4)}
+  .ph-night    {background:linear-gradient(160deg,#5b4a8c,#c08fb4 60%,#f1b98f)}
+  .ph-midnight {background:linear-gradient(160deg,#141433,#28285a 60%,#3d3470)}
+
+  /* 雨(雨用の画像がない間の演出) */
+  #rain{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 2s}
+  #rain.on{opacity:.55}
+
+  .ui{position:fixed;inset:0;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
+      max(14px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
+      display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+  .ui > *{pointer-events:auto}
+
+  /* 上段:時計と今日の回数 */
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .chip{background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);border-radius:999px;padding:6px 14px;font-size:14px;
+    text-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .icon-btn{border:none;cursor:pointer;color:var(--text);font:inherit}
+
+  /* タイマー本体 */
+  .timer{align-self:flex-start;background:var(--glass);border:1px solid var(--glass-line);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:22px;
+    padding:12px 20px 14px;text-align:center;min-width:220px}
+  .phase{font-size:13px;letter-spacing:.15em;color:var(--accent)}
+  .phase.rest{color:var(--rest)}
+  .time{font-size:clamp(46px,10vh,84px);font-weight:800;line-height:1.05;
+    font-variant-numeric:tabular-nums;text-shadow:0 2px 10px rgba(0,0,0,.35)}
+  .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden;margin:6px 0 10px}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s linear}
+  .bar i.rest{background:var(--rest)}
+  .btns{display:flex;gap:8px;justify-content:center}
+  .btn{border:1px solid var(--glass-line);background:rgba(255,255,255,.12);color:var(--text);
+    font:inherit;font-size:15px;padding:8px 16px;border-radius:999px;cursor:pointer;min-width:64px}
+  .btn.main{background:var(--accent);color:#3a2a1a;border-color:transparent;font-weight:800;min-width:96px}
+  .btn:active{transform:scale(.96)}
+
+  /* 吹き出し */
+  .speech{align-self:flex-start;max-width:min(560px,60vw);background:rgba(255,250,242,.92);
+    color:#4a3a3a;border-radius:18px;padding:10px 18px;font-size:clamp(14px,3.6vh,18px);
+    line-height:1.5;position:relative;box-shadow:0 4px 16px rgba(0,0,0,.25);min-height:2.6em;
+    cursor:pointer}
+  .speech::after{content:"";position:absolute;right:-10px;bottom:14px;border:8px solid transparent;
+    border-left-color:rgba(255,250,242,.92)}
+  .speech .name{font-size:11px;color:#b07a5a;font-weight:800;display:block}
+
+  /* 設定パネル */
+  .sheet{position:fixed;inset:0;background:rgba(10,8,20,.5);display:none;align-items:center;justify-content:center;z-index:10}
+  .sheet.open{display:flex}
+  .sheet .card{background:#2b2442;border:1px solid var(--glass-line);border-radius:20px;padding:18px 22px;width:min(380px,90vw)}
+  .sheet h2{font-size:16px;margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:15px}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper button{width:34px;height:34px;border-radius:50%;border:1px solid var(--glass-line);
+    background:rgba(255,255,255,.1);color:var(--text);font-size:18px;cursor:pointer}
+  .stepper b{min-width:3.2em;text-align:center}
+  .sheet .close{margin-top:12px;width:100%}
+
+  /* 縦持ちのとき */
+  #rotate{position:fixed;inset:0;background:#1d1830;display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:12px;z-index:20;text-align:center;padding:24px}
+  #rotate .phone{font-size:48px;animation:tilt 2s ease-in-out infinite}
+  @keyframes tilt{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+  @media (orientation:portrait){#rotate{display:flex}}
+</style>
+</head>
+<body>
+  <div class="bg" id="bgA"></div>
+  <div class="bg hidden" id="bgB"></div>
+  <canvas id="rain"></canvas>
+
+  <div class="ui">
+    <div class="top">
+      <div class="timer">
+        <div class="phase" id="phase">しゅうちゅう</div>
+        <div class="time" id="time">25:00</div>
+        <div class="bar"><i id="bar"></i></div>
+        <div class="btns">
+          <button class="btn main" id="startBtn">はじめる</button>
+          <button class="btn" id="resetBtn">リセット</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="chip" id="clock">--:--</div>
+        <div class="chip" id="count">🍅 0</div>
+        <button class="chip icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
+      </div>
+    </div>
+
+    <div class="speech" id="speech"><span class="name">ねこ</span><span id="speechText"></span></div>
+  </div>
+
+  <div class="sheet" id="sheet">
+    <div class="card">
+      <h2>せってい</h2>
+      <div class="row"><span>集中</span><div class="stepper"><button data-k="focus" data-d="-5">−</button><b id="focusVal">25分</b><button data-k="focus" data-d="5">+</button></div></div>
+      <div class="row"><span>休憩</span><div class="stepper"><button data-k="rest" data-d="-1">−</button><b id="restVal">5分</b><button data-k="rest" data-d="1">+</button></div></div>
+      <div class="row"><span>音</span><div class="stepper"><button id="soundBtn" style="width:auto;padding:0 14px;border-radius:999px;font-size:14px">ON</button></div></div>
+      <button class="btn close" id="closeSheet">とじる</button>
+    </div>
+  </div>
+
+  <div id="rotate"><div class="phone">📱</div><div>スマホを横にしてね</div></div>
+
+<script>
+/* =========================================================
+   設定:背景画像と時間帯
+   画像が増えたら BACKGROUNDS に追加するだけ。
+   null の場所は仮のグラデーション(雨は晴れ画像+雨演出)になる。
+   ========================================================= */
+const BACKGROUNDS = {
+  sunny: { morning: null, afternoon: null, night: "img/sunny_night.webp", midnight: null },
+  rainy: { morning: null, afternoon: null, night: null, midnight: null },
+};
+
+// 時間帯の区切り(時)
+function getPeriod(h){
+  if (h >= 5  && h < 11) return "morning";
+  if (h >= 11 && h < 18) return "afternoon";
+  if (h >= 18 && h < 21) return "night";     // 18:00〜20:59
+  return "midnight";
+}
+
+/* ===== セリフ ===== */
+const LINES = {
+  idle: {
+    morning:   ["おはよう。朝の光、きれいにゃね。","今日ものんびり、マイペースでいこう。","準備できたら、はじめるを押してにゃ。"],
+    afternoon: ["ちょっとひと息入れにゃい?","おつかれさま。ひと区切りやってみる?","日向ぼっこしながら待ってるにゃ。"],
+    night:     ["今日もがんばったね。えらいえらい。","夜はこれから。好きなことして過ごそう。","もうひとがんばりする?"],
+    midnight:  ["まだ起きてたの?夜更かしさんだね。","静かな夜だにゃ…。","無理しないで、ほどほどにね。"],
+  },
+  focusStart: ["よーし、いっしょにがんばろ。","スタートにゃ。となりで見てるよ。","集中モード、はじめるにゃ。"],
+  focusMid:   ["いい感じにゃ。","そのちょうし、そのちょうし。","しずかに応援してるにゃ…。","ふぁ…あ、ちゃんと見てるよ?"],
+  focusLast:  ["あと少しにゃ!","ラストスパートだよ。","もうすぐ休憩にゃ。"],
+  restStart:  ["おつかれさま!休憩にゃ。","よくがんばったね。ひと息つこ。","のびーってしよ。のびー。"],
+  restMid:    ["お水飲んだ?","目をとじて、ちょっと休もう。","肩、ぐるぐるしてみて。"],
+  restEnd:    ["休憩おわり。つぎもいける?","またいっしょにやろ。","準備できたら、はじめるにゃ。"],
+  paused:     ["ちょっとおやすみ?","まってるにゃ。","いつでも続きからどうぞ。"],
+  midnightFocus: ["夜ふかしは、ほどほどにね。","これが終わったら寝よ?"],
+};
+const pick = a => a[Math.floor(Math.random()*a.length)];
+
+/* ===== 保存 ===== */
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
+};
+const todayStr = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`; };
+
+const settings = Object.assign({ focus: 25, rest: 5, sound: true }, store.get("settings", {}));
+
+/* ===== 今日の天気(1日1回、晴れ70%) ===== */
+function getWeather(){
+  const w = store.get("weather", null);
+  if (w && w.date === todayStr()) return w.value;
+  const value = Math.random() < 0.7 ? "sunny" : "rainy";
+  store.set("weather", { date: todayStr(), value });
+  return value;
+}
+
+/* ===== 今日のポモドーロ数 ===== */
+function getCount(){ const c = store.get("count", null); return (c && c.date === todayStr()) ? c.n : 0; }
+function addCount(){ const n = getCount() + 1; store.set("count", { date: todayStr(), n }); renderCount(); }
+function renderCount(){ document.getElementById("count").textContent = `🍅 ${getCount()}`; }
+
+/* ===== 背景 ===== */
+const bgA = document.getElementById("bgA"), bgB = document.getElementById("bgB");
+let frontBg = bgA, currentBgKey = "";
+function setBackground(period, weather){
+  let src = BACKGROUNDS[weather][period];
+  if (!src && weather === "rainy") src = BACKGROUNDS.sunny[period];   // 雨画像がなければ晴れで代用
+  const key = src || "ph-" + period;
+  if (key === currentBgKey) return;
+  currentBgKey = key;
+  const back = frontBg === bgA ? bgB : bgA;
+  back.className = "bg hidden";
+  back.style.backgroundImage = "";
+  if (src) back.style.backgroundImage = `url("${src}")`; else back.classList.add("ph-" + period);
+  requestAnimationFrame(() => { back.classList.remove("hidden"); frontBg.classList.add("hidden"); frontBg = back; });
+  // 雨用の画像がまだない雨の日は、雨粒の演出を重ねる
+  rainCanvas.classList.toggle("on", weather === "rainy" && !BACKGROUNDS.rainy[period]);
+}
+
+/* ===== 雨の演出 ===== */
+const rainCanvas = document.getElementById("rain"), rctx = rainCanvas.getContext("2d");
+let drops = [];
+function resizeRain(){
+  rainCanvas.width = innerWidth * devicePixelRatio; rainCanvas.height = innerHeight * devicePixelRatio;
+  drops = Array.from({length: 90}, () => ({ x: Math.random(), y: Math.random(), s: .6 + Math.random()*.8 }));
+}
+function drawRain(){
+  if (rainCanvas.classList.contains("on")){
+    const W = rainCanvas.width, H = rainCanvas.height;
+    rctx.clearRect(0,0,W,H); rctx.strokeStyle = "rgba(200,210,255,.55)"; rctx.lineWidth = devicePixelRatio;
+    rctx.beginPath();
+    for (const d of drops){
+      const x = d.x*W, y = d.y*H, len = 14*d.s*devicePixelRatio;
+      rctx.moveTo(x,y); rctx.lineTo(x-len*.2, y+len);
+      d.y += .012*d.s; d.x -= .0022*d.s;
+      if (d.y > 1){ d.y = -.05; d.x = Math.random()*1.1; }
+    }
+    rctx.stroke();
+  }
+  requestAnimationFrame(drawRain);
+}
+addEventListener("resize", resizeRain); resizeRain(); drawRain();
+
+/* ===== 吹き出し(タイピング表示) ===== */
+const speechText = document.getElementById("speechText");
+let typingTimer = null;
+function say(text){
+  clearInterval(typingTimer);
+  let i = 0; speechText.textContent = "";
+  typingTimer = setInterval(() => {
+    speechText.textContent = text.slice(0, ++i);
+    if (i >= text.length) clearInterval(typingTimer);
+  }, 55);
+}
+
+/* ===== タイマー =====
+   残り時間は「終了予定時刻」から毎回計算する。
+   画面が消えたり裏に回っても、戻ったときに正しい残り時間になる。 */
+const state = {
+  phase: "focus",     // focus | rest
+  running: false,
+  endAt: 0,           // 実行中の終了予定時刻(ms)
+  remain: settings.focus * 60 * 1000,  // 一時停止中の残り(ms)
+  lastMidLine: 0,
+  saidLast: false,
+};
+const el = {
+  time: document.getElementById("time"), phase: document.getElementById("phase"), bar: document.getElementById("bar"),
+  start: document.getElementById("startBtn"), reset: document.getElementById("resetBtn"), clock: document.getElementById("clock"),
+};
+const total = () => (state.phase === "focus" ? settings.focus : settings.rest) * 60 * 1000;
+const remaining = () => state.running ? Math.max(0, state.endAt - Date.now()) : state.remain;
+
+function render(){
+  const r = remaining(), s = Math.ceil(r / 1000);
+  el.time.textContent = `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+  const isRest = state.phase === "rest";
+  el.phase.textContent = isRest ? "きゅうけい" : "しゅうちゅう";
+  el.phase.classList.toggle("rest", isRest);
+  el.bar.classList.toggle("rest", isRest);
+  el.bar.style.width = `${(1 - r / total()) * 100}%`;
+  el.start.textContent = state.running ? "いちじ停止" : (r < total() ? "つづける" : "はじめる");
+  document.title = state.running ? `${el.time.textContent} 猫ポモドーロ` : "猫ポモドーロ";
+}
+
+function start(){
+  unlockAudio();
+  const fresh = state.remain >= total();
+  state.endAt = Date.now() + state.remain;
+  state.running = true;
+  state.lastMidLine = Date.now();
+  if (fresh){
+    state.saidLast = false;
+    if (state.phase === "focus") say(getPeriod(new Date().getHours()) === "midnight" && Math.random() < .5 ? pick(LINES.midnightFocus) : pick(LINES.focusStart));
+    else say(pick(LINES.restStart));
+  }
+  requestWakeLock();
+  render();
+}
+function pause(){
+  state.remain = remaining();
+  state.running = false;
+  say(pick(LINES.paused));
+  releaseWakeLock();
+  render();
+}
+function reset(){
+  state.running = false; state.phase = "focus"; state.remain = total(); state.saidLast = false;
+  releaseWakeLock();
+  say(pick(LINES.idle[getPeriod(new Date().getHours())]));
+  render();
+}
+
+function finishPhase(){
+  if (state.phase === "focus"){
+    addCount();
+    chime("focus");
+    state.phase = "rest";
+    state.remain = total();
+    start();                       // 休憩は自動でスタート
+  } else {
+    chime("rest");
+    state.phase = "focus";
+    state.remain = total();
+    state.running = false;         // 集中は自分で押してはじめる
+    releaseWakeLock();
+    say(pick(LINES.restEnd));
+    render();
+  }
+}
+
+function tick(){
+  if (state.running){
+    const r = remaining();
+    if (r <= 0){ finishPhase(); }
+    else {
+      // 途中のひとこと(約4分ごと)と、終わり1分前のひとこと
+      if (state.phase === "focus" && !state.saidLast && r <= 60*1000 && total() > 2*60*1000){ state.saidLast = true; say(pick(LINES.focusLast)); }
+      else if (Date.now() - state.lastMidLine > 4*60*1000 && r > 60*1000){
+        state.lastMidLine = Date.now();
+        say(pick(state.phase === "focus" ? LINES.focusMid : LINES.restMid));
+      }
+    }
+  }
+  render();
+  const now = new Date();
+  el.clock.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+  setBackground(getPeriod(now.getHours()), getWeather());
+}
+
+/* ===== 音とバイブ ===== */
+let audioCtx = null;
+function unlockAudio(){
+  if (!audioCtx){ try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{} }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+function chime(kind){
+  if (navigator.vibrate) navigator.vibrate(kind === "focus" ? [180,90,180] : [120]);
+  if (!settings.sound || !audioCtx) return;
+  const notes = kind === "focus" ? [784, 988, 1175] : [1175, 988];   // ポロロン
+  notes.forEach((f, i) => {
+    const t = audioCtx.currentTime + i * 0.22;
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + .9);
+    o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + 1);
+  });
+}
+
+/* ===== 画面を点けっぱなしにする(Wake Lock) ===== */
+let wakeLock = null;
+async function requestWakeLock(){
+  try{ if ("wakeLock" in navigator && !wakeLock){ wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => wakeLock = null); } }catch{}
+}
+function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch{} wakeLock = null; }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible"){ if (state.running) requestWakeLock(); tick(); }
+});
+
+/* ===== 操作 ===== */
+el.start.addEventListener("click", () => state.running ? pause() : start());
+el.reset.addEventListener("click", reset);
+document.getElementById("speech").addEventListener("click", () => {
+  const p = getPeriod(new Date().getHours());
+  say(state.running ? pick(state.phase === "focus" ? LINES.focusMid : LINES.restMid) : pick(LINES.idle[p]));
+});
+
+const sheet = document.getElementById("sheet");
+function renderSettings(){
+  document.getElementById("focusVal").textContent = settings.focus + "分";
+  document.getElementById("restVal").textContent = settings.rest + "分";
+  document.getElementById("soundBtn").textContent = settings.sound ? "ON" : "OFF";
+}
+document.getElementById("settingsBtn").addEventListener("click", () => { renderSettings(); sheet.classList.add("open"); });
+document.getElementById("closeSheet").addEventListener("click", () => sheet.classList.remove("open"));
+sheet.addEventListener("click", e => { if (e.target === sheet) sheet.classList.remove("open"); });
+document.querySelectorAll(".stepper button[data-k]").forEach(b => b.addEventListener("click", () => {
+  const k = b.dataset.k, d = +b.dataset.d;
+  settings[k] = k === "focus" ? Math.min(90, Math.max(5, settings[k] + d)) : Math.min(30, Math.max(1, settings[k] + d));
+  store.set("settings", settings); renderSettings();
+  // 止まっているときは、今のフェーズに新しい時間をすぐ反映
+  if (!state.running && k === state.phase){ state.remain = total(); render(); }
+}));
+document.getElementById("soundBtn").addEventListener("click", () => { settings.sound = !settings.sound; store.set("settings", settings); renderSettings(); unlockAudio(); });
+
+/* ===== 起動 ===== */
+renderCount();
+say(pick(LINES.idle[getPeriod(new Date().getHours())]));
+tick();
+setInterval(tick, 500);
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
