@@ -18,6 +18,7 @@
     --text: #fff8ef;
     --accent: #ffc58a;
     --rest: #9fe0c8;
+    --kitchen: #ffd36e;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;overflow:hidden;background:#1d1830;color:var(--text);
@@ -38,19 +39,22 @@
   #rain{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 2s}
   #rain.on{opacity:.55}
 
-  .ui{position:fixed;inset:0;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
-      max(14px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
-      display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
-  .ui > *{pointer-events:auto}
-
-  /* 上段:時計と今日の回数 */
-  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
   .chip{background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);border-radius:999px;padding:6px 14px;font-size:14px;
     text-shadow:0 1px 3px rgba(0,0,0,.4)}
   .icon-btn{border:none;cursor:pointer;color:var(--text);font:inherit}
+  .btn{border:1px solid var(--glass-line);background:rgba(255,255,255,.12);color:var(--text);
+    font:inherit;font-size:15px;padding:8px 16px;border-radius:999px;cursor:pointer;min-width:64px}
+  .btn.main{background:var(--accent);color:#3a2a1a;border-color:transparent;font-weight:800;min-width:96px}
+  .btn:active{transform:scale(.96)}
 
-  /* タイマー本体 */
+  /* ===================== ポモドーロ(横画面) ===================== */
+  .ui{position:fixed;inset:0;padding:max(14px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
+      max(14px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
+      display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+  .ui > *{pointer-events:auto}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+
   .timer{align-self:flex-start;background:var(--glass);border:1px solid var(--glass-line);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:22px;
     padding:12px 20px 14px;text-align:center;min-width:220px}
@@ -61,11 +65,8 @@
   .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden;margin:6px 0 10px}
   .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s linear}
   .bar i.rest{background:var(--rest)}
+  .bar i.kitchen{background:var(--kitchen)}
   .btns{display:flex;gap:8px;justify-content:center}
-  .btn{border:1px solid var(--glass-line);background:rgba(255,255,255,.12);color:var(--text);
-    font:inherit;font-size:15px;padding:8px 16px;border-radius:999px;cursor:pointer;min-width:64px}
-  .btn.main{background:var(--accent);color:#3a2a1a;border-color:transparent;font-weight:800;min-width:96px}
-  .btn:active{transform:scale(.96)}
 
   /* 吹き出し */
   .speech{align-self:flex-start;max-width:min(560px,60vw);background:rgba(255,250,242,.92);
@@ -75,6 +76,61 @@
   .speech::after{content:"";position:absolute;right:-10px;bottom:14px;border:8px solid transparent;
     border-left-color:rgba(255,250,242,.92)}
   .speech .name{font-size:11px;color:#b07a5a;font-weight:800;display:block}
+
+  /* ===================== キッチン(縦画面) ===================== */
+  #kitchen{position:fixed;inset:0;display:none;flex-direction:column;gap:12px;
+    padding:max(14px,env(safe-area-inset-top)) 16px max(14px,env(safe-area-inset-bottom))}
+  body.mode-kitchen .ui{display:none}
+  body.mode-kitchen #kitchen{display:flex}
+  /* 縦画面では背景の絵を猫の位置に寄せて、少しぼかして暗くする */
+  body.mode-kitchen .bg{background-position:62% center;filter:blur(2px) brightness(.62);transform:scale(1.04)}
+
+  .k-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .k-card{background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);border-radius:24px;padding:14px 18px 16px;text-align:center}
+  .k-label{font-size:15px;color:var(--kitchen);min-height:1.4em}
+  .k-time{font-size:clamp(72px,24vw,128px);font-weight:800;line-height:1;
+    font-variant-numeric:tabular-nums;text-shadow:0 3px 14px rgba(0,0,0,.4)}
+  .k-row{display:flex;gap:10px;justify-content:center}
+  .k-row + .k-row{margin-top:10px}
+  .k-btn{flex:1;border:1px solid var(--glass-line);background:rgba(255,255,255,.14);color:var(--text);
+    font:inherit;font-size:18px;font-weight:800;padding:14px 8px;border-radius:18px;cursor:pointer}
+  .k-btn.main{background:var(--kitchen);color:#3a2a10;border-color:transparent}
+  .k-btn:active{transform:scale(.96)}
+
+  .k-presets{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;
+    gap:10px;align-content:start;padding-bottom:4px}
+  .k-preset{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--glass-line);
+    background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--text);
+    font:inherit;padding:12px;border-radius:16px;cursor:pointer;min-height:64px}
+  .k-preset:active{transform:scale(.97)}
+  .k-preset.active{border-color:var(--kitchen);box-shadow:0 0 0 2px var(--kitchen) inset}
+  .k-preset .emo{font-size:28px;line-height:1}
+  .k-preset .nm{font-size:14px;font-weight:800;display:block}
+  .k-preset .mn{font-size:12px;opacity:.85}
+
+  /* すぐ計る(なんでも用の丸ボタン) */
+  .k-quick{display:flex;align-items:center;gap:8px;overflow-x:auto;flex:none}
+  .k-quick .lbl{font-size:13px;white-space:nowrap;margin-right:2px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+  .k-pill{flex:none;border:1px solid var(--glass-line);background:var(--glass);backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);color:var(--text);font:inherit;font-size:16px;font-weight:800;
+    padding:10px 24px;border-radius:999px;cursor:pointer}
+  .k-pill:active{transform:scale(.96)}
+  .k-pill.active{border-color:var(--kitchen);box-shadow:0 0 0 2px var(--kitchen) inset}
+
+  .k-speech{max-width:none;align-self:stretch}
+  .k-speech::after{display:none}
+
+  /* ゆであがり画面 */
+  #kring{position:fixed;inset:0;z-index:15;display:none;flex-direction:column;align-items:center;
+    justify-content:center;gap:18px;padding:24px;background:rgba(40,26,10,.72);
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-align:center}
+  #kring.open{display:flex}
+  #kring .big{font-size:clamp(30px,9vw,48px);font-weight:800;color:var(--kitchen);animation:pulse 1s ease-in-out infinite}
+  #kring .sub{font-size:16px;opacity:.9}
+  #kring .k-row{width:min(420px,100%)}
+  #kring .stop{flex:none;width:min(420px,100%);font-size:24px;padding:22px}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
   /* 設定パネル */
   .sheet{position:fixed;inset:0;background:rgba(10,8,20,.5);display:none;align-items:center;justify-content:center;z-index:10}
@@ -88,12 +144,16 @@
   .stepper b{min-width:3.2em;text-align:center}
   .sheet .close{margin-top:12px;width:100%}
 
-  /* 縦持ちのとき */
+  /* 向きのお願い(ポモドーロは横、キッチンは縦) */
   #rotate{position:fixed;inset:0;background:#1d1830;display:none;flex-direction:column;
     align-items:center;justify-content:center;gap:12px;z-index:20;text-align:center;padding:24px}
   #rotate .phone{font-size:48px;animation:tilt 2s ease-in-out infinite}
+  body.mode-kitchen #rotate .phone{animation-name:tiltBack}
+  #rotate .switch{margin-top:8px}
   @keyframes tilt{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
-  @media (orientation:portrait){#rotate{display:flex}}
+  @keyframes tiltBack{0%,30%{transform:rotate(-90deg)}60%,100%{transform:rotate(0)}}
+  @media (orientation:portrait){ body:not(.mode-kitchen) #rotate{display:flex} }
+  @media (orientation:landscape) and (max-height:540px){ body.mode-kitchen #rotate{display:flex} }
 </style>
 </head>
 <body>
@@ -101,6 +161,7 @@
   <div class="bg hidden" id="bgB"></div>
   <canvas id="rain"></canvas>
 
+  <!-- ポモドーロ(横) -->
   <div class="ui">
     <div class="top">
       <div class="timer">
@@ -115,11 +176,45 @@
       <div style="display:flex;gap:8px;align-items:center">
         <div class="chip" id="clock">--:--</div>
         <div class="chip" id="count">🍅 0</div>
+        <button class="chip icon-btn" data-mode="kitchen" aria-label="キッチンモード">🍳 キッチン</button>
         <button class="chip icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
       </div>
     </div>
+    <div class="speech" id="speech"><span class="name">ねこ</span><span class="say"></span></div>
+  </div>
 
-    <div class="speech" id="speech"><span class="name">ねこ</span><span id="speechText"></span></div>
+  <!-- キッチン(縦) -->
+  <div id="kitchen">
+    <div class="k-top">
+      <div class="chip" id="kClock">--:--</div>
+      <button class="chip icon-btn" data-mode="pomodoro" aria-label="ポモドーロモード">🍅 ポモドーロ</button>
+    </div>
+    <div class="k-card">
+      <div class="k-label" id="kLabel">ゆでるものをえらんでね</div>
+      <div class="k-time" id="kTime">00:00</div>
+      <div class="bar"><i id="kBar" class="kitchen"></i></div>
+      <div class="k-row">
+        <button class="k-btn main" id="kStart">スタート</button>
+        <button class="k-btn" id="kReset">リセット</button>
+      </div>
+      <div class="k-row">
+        <button class="k-btn" data-add="30">+30秒</button>
+        <button class="k-btn" data-add="60">+1分</button>
+      </div>
+    </div>
+    <div class="k-quick" id="kQuick"><span class="lbl">⏱ すぐ計る</span></div>
+    <div class="k-presets" id="kPresets"></div>
+    <div class="speech k-speech" id="kSpeech"><span class="name">ねこ</span><span class="say"></span></div>
+  </div>
+
+  <div id="kring">
+    <div class="big" id="kringBig">ゆであがったにゃ!</div>
+    <div class="sub" id="kringSub"></div>
+    <button class="k-btn main stop" id="kStop">とめる</button>
+    <div class="k-row">
+      <button class="k-btn" data-add="30">あと30秒</button>
+      <button class="k-btn" data-add="60">あと1分</button>
+    </div>
   </div>
 
   <div class="sheet" id="sheet">
@@ -127,12 +222,16 @@
       <h2>せってい</h2>
       <div class="row"><span>集中</span><div class="stepper"><button data-k="focus" data-d="-5">−</button><b id="focusVal">25分</b><button data-k="focus" data-d="5">+</button></div></div>
       <div class="row"><span>休憩</span><div class="stepper"><button data-k="rest" data-d="-1">−</button><b id="restVal">5分</b><button data-k="rest" data-d="1">+</button></div></div>
-      <div class="row"><span>音</span><div class="stepper"><button id="soundBtn" style="width:auto;padding:0 14px;border-radius:999px;font-size:14px">ON</button></div></div>
+      <div class="row"><span>ポモドーロの音</span><div class="stepper"><button id="soundBtn" style="width:auto;padding:0 14px;border-radius:999px;font-size:14px">ON</button></div></div>
       <button class="btn close" id="closeSheet">とじる</button>
     </div>
   </div>
 
-  <div id="rotate"><div class="phone">📱</div><div>スマホを横にしてね</div></div>
+  <div id="rotate">
+    <div class="phone">📱</div>
+    <div id="rotateText">スマホを横にしてね</div>
+    <button class="chip icon-btn switch" id="rotateSwitch"></button>
+  </div>
 
 <script>
 /* =========================================================
@@ -147,6 +246,24 @@ const BG_SLOTS = [
   { weather: "sunny", from: 21, to: 22, src: "img/sunny_night21.webp" },  // 21:00〜21:59
   { weather: "sunny", from: 22, to: 5,  src: "img/sunny_midnight.webp" }, // 22:00〜4:59(日またぎ)
 ];
+
+/* =========================================================
+   設定:キッチンのプリセット(秒)
+   並べ替え・追加はここを書き換えるだけ。
+   ========================================================= */
+const KITCHEN_PRESETS = [
+  { emo: "🥬", name: "ほうれん草",   note: "",          sec: 60 },
+  { emo: "🥦", name: "ブロッコリー", note: "かため",     sec: 120 },
+  { emo: "🥦", name: "ブロッコリー", note: "やわらかめ", sec: 180 },
+  { emo: "🫛", name: "枝豆",         note: "",          sec: 240 },
+  { emo: "🌽", name: "とうもろこし", note: "",          sec: 300 },
+  { emo: "🥚", name: "ゆでたまご",   note: "半熟",       sec: 360 },
+  { emo: "🥚", name: "ゆでたまご",   note: "固ゆで",     sec: 660 },
+  { emo: "🥕", name: "根菜",         note: "大根・人参", sec: 720 },
+];
+
+// すぐ計る(料理以外にもなんでも使える時間)。秒で書く
+const QUICK_TIMERS = [180, 300];
 
 // セリフ用の時間帯の区切り(時)
 function getPeriod(h){
@@ -178,6 +295,16 @@ const LINES = {
   restEnd:    ["休憩おわり。つぎもいける?","またいっしょにやろ。","準備できたら、はじめるにゃ。"],
   paused:     ["ちょっとおやすみ?","まってるにゃ。","いつでも続きからどうぞ。"],
   midnightFocus: ["夜ふかしは、ほどほどにね。","これが終わったら寝よ?"],
+
+  kIdle:   ["なにをゆでるにゃ?","おなべの準備できた?","ボタンひとつでおまかせにゃ。"],
+  kPick:   ["それにするにゃ?スタートでいくよ。","いい選択にゃ。","お湯、わいてる?"],
+  kStart:  ["ぐつぐつ…見張ってるにゃ。","ゆで時間、計りはじめたよ。","吹きこぼれに気をつけてにゃ。"],
+  kMid:    ["いいにおいがしてきたにゃ…","おなべ、まだかにゃ?","ざるの準備、しておく?"],
+  kLast:   ["そろそろにゃ!","あと少しでできあがり。"],
+  kDone:   ["できたよー!ざるの準備!","時間だにゃ!あちちに気をつけて。","ゆであがり、おいしそうにゃ。"],
+  qStart:  ["計りはじめたよ。","まかせてにゃ。時間になったら呼ぶね。","いってらっしゃい、見てるにゃ。"],
+  kExtend:["もうちょっとだけね。","あと少し、ぐつぐつ。","かたさ、どうだった?"],
+  kPaused: ["火、止めた?","まってるにゃ。"],
 };
 const pick = a => a[Math.floor(Math.random()*a.length)];
 
@@ -187,8 +314,26 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} },
 };
 const todayStr = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`; };
+const fmt = ms => { const s = Math.ceil(ms / 1000); return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`; };
+const fmtSec = sec => sec % 60 === 0 ? `${sec/60}分` : (sec < 60 ? `${sec}秒` : `${Math.floor(sec/60)}分${sec%60}秒`);
 
 const settings = Object.assign({ focus: 25, rest: 5, sound: true }, store.get("settings", {}));
+
+/* =========================================================
+   タイマーの心臓部(ポモドーロとキッチンで共通)
+   残り時間は「終了予定時刻」から毎回計算する。
+   画面が消えたり裏に回っても、戻ったときに正しい残り時間になる。
+   ========================================================= */
+class Countdown {
+  constructor(ms){ this.set(ms); }
+  set(ms){ this.total = ms; this.remain = ms; this.running = false; this.endAt = 0; }
+  left(){ return this.running ? Math.max(0, this.endAt - Date.now()) : this.remain; }
+  start(){ if (this.remain <= 0) return false; this.endAt = Date.now() + this.remain; this.running = true; return true; }
+  pause(){ this.remain = this.left(); this.running = false; }
+  add(ms){ if (this.running) this.endAt += ms; else this.remain += ms; this.total = Math.max(this.total + ms, this.left()); }
+  finished(){ return this.running && this.left() <= 0; }
+  progress(){ return this.total > 0 ? 1 - this.left() / this.total : 0; }
+}
 
 /* ===== 今日の天気(1日1回、晴れ70%) ===== */
 function getWeather(){
@@ -249,111 +394,17 @@ function drawRain(){
 addEventListener("resize", resizeRain); resizeRain(); drawRain();
 
 /* ===== 吹き出し(タイピング表示) ===== */
-const speechText = document.getElementById("speechText");
-let typingTimer = null;
-function say(text){
-  clearInterval(typingTimer);
-  let i = 0; speechText.textContent = "";
-  typingTimer = setInterval(() => {
-    speechText.textContent = text.slice(0, ++i);
-    if (i >= text.length) clearInterval(typingTimer);
-  }, 55);
+function makeSpeaker(el){
+  const out = el.querySelector(".say");
+  let timer = null;
+  return text => {
+    clearInterval(timer);
+    let i = 0; out.textContent = "";
+    timer = setInterval(() => { out.textContent = text.slice(0, ++i); if (i >= text.length) clearInterval(timer); }, 55);
+  };
 }
-
-/* ===== タイマー =====
-   残り時間は「終了予定時刻」から毎回計算する。
-   画面が消えたり裏に回っても、戻ったときに正しい残り時間になる。 */
-const state = {
-  phase: "focus",     // focus | rest
-  running: false,
-  endAt: 0,           // 実行中の終了予定時刻(ms)
-  remain: settings.focus * 60 * 1000,  // 一時停止中の残り(ms)
-  lastMidLine: 0,
-  saidLast: false,
-};
-const el = {
-  time: document.getElementById("time"), phase: document.getElementById("phase"), bar: document.getElementById("bar"),
-  start: document.getElementById("startBtn"), reset: document.getElementById("resetBtn"), clock: document.getElementById("clock"),
-};
-const total = () => (state.phase === "focus" ? settings.focus : settings.rest) * 60 * 1000;
-const remaining = () => state.running ? Math.max(0, state.endAt - Date.now()) : state.remain;
-
-function render(){
-  const r = remaining(), s = Math.ceil(r / 1000);
-  el.time.textContent = `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
-  const isRest = state.phase === "rest";
-  el.phase.textContent = isRest ? "きゅうけい" : "しゅうちゅう";
-  el.phase.classList.toggle("rest", isRest);
-  el.bar.classList.toggle("rest", isRest);
-  el.bar.style.width = `${(1 - r / total()) * 100}%`;
-  el.start.textContent = state.running ? "いちじ停止" : (r < total() ? "つづける" : "はじめる");
-  document.title = state.running ? `${el.time.textContent} 猫ポモドーロ` : "猫ポモドーロ";
-}
-
-function start(){
-  unlockAudio();
-  const fresh = state.remain >= total();
-  state.endAt = Date.now() + state.remain;
-  state.running = true;
-  state.lastMidLine = Date.now();
-  if (fresh){
-    state.saidLast = false;
-    if (state.phase === "focus") say(getPeriod(new Date().getHours()) === "midnight" && Math.random() < .5 ? pick(LINES.midnightFocus) : pick(LINES.focusStart));
-    else say(pick(LINES.restStart));
-  }
-  requestWakeLock();
-  render();
-}
-function pause(){
-  state.remain = remaining();
-  state.running = false;
-  say(pick(LINES.paused));
-  releaseWakeLock();
-  render();
-}
-function reset(){
-  state.running = false; state.phase = "focus"; state.remain = total(); state.saidLast = false;
-  releaseWakeLock();
-  say(pick(LINES.idle[getPeriod(new Date().getHours())]));
-  render();
-}
-
-function finishPhase(){
-  if (state.phase === "focus"){
-    addCount();
-    chime("focus");
-    state.phase = "rest";
-    state.remain = total();
-    start();                       // 休憩は自動でスタート
-  } else {
-    chime("rest");
-    state.phase = "focus";
-    state.remain = total();
-    state.running = false;         // 集中は自分で押してはじめる
-    releaseWakeLock();
-    say(pick(LINES.restEnd));
-    render();
-  }
-}
-
-function tick(){
-  if (state.running){
-    const r = remaining();
-    if (r <= 0){ finishPhase(); }
-    else {
-      // 途中のひとこと(約4分ごと)と、終わり1分前のひとこと
-      if (state.phase === "focus" && !state.saidLast && r <= 60*1000 && total() > 2*60*1000){ state.saidLast = true; say(pick(LINES.focusLast)); }
-      else if (Date.now() - state.lastMidLine > 4*60*1000 && r > 60*1000){
-        state.lastMidLine = Date.now();
-        say(pick(state.phase === "focus" ? LINES.focusMid : LINES.restMid));
-      }
-    }
-  }
-  render();
-  const now = new Date();
-  el.clock.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
-  setBackground(now.getHours(), getWeather());
-}
+const say  = makeSpeaker(document.getElementById("speech"));
+const kSay = makeSpeaker(document.getElementById("kSpeech"));
 
 /* ===== 音とバイブ ===== */
 let audioCtx = null;
@@ -361,37 +412,239 @@ function unlockAudio(){
   if (!audioCtx){ try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch{} }
   if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
 }
+function tone(freq, at, len, type = "sine", vol = .25){
+  const t = audioCtx.currentTime + at;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + len);
+  o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + len + .05);
+}
 function chime(kind){
   if (navigator.vibrate) navigator.vibrate(kind === "focus" ? [180,90,180] : [120]);
   if (!settings.sound || !audioCtx) return;
   const notes = kind === "focus" ? [784, 988, 1175] : [1175, 988];   // ポロロン
-  notes.forEach((f, i) => {
-    const t = audioCtx.currentTime + i * 0.22;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = "sine"; o.frequency.value = f;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + .9);
-    o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + 1);
-  });
+  notes.forEach((f, i) => tone(f, i * 0.22, .9));
+}
+// キッチン用:少し高めで、離れていても聞こえるピピピッ
+function kitchenAlarm(){
+  if (navigator.vibrate) navigator.vibrate([250,120,250,120,250]);
+  if (!audioCtx) return;
+  [0, .16, .32].forEach(at => tone(1568, at, .13, "triangle", .45));
+  tone(2093, .52, .25, "triangle", .4);
 }
 
 /* ===== 画面を点けっぱなしにする(Wake Lock) ===== */
 let wakeLock = null;
-async function requestWakeLock(){
-  try{ if ("wakeLock" in navigator && !wakeLock){ wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => wakeLock = null); } }catch{}
+async function updateWakeLock(){
+  const need = pomo.running || kTimer.running || ringing;
+  try{
+    if (need && !wakeLock && "wakeLock" in navigator){
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => wakeLock = null);
+    } else if (!need && wakeLock){ wakeLock.release(); wakeLock = null; }
+  }catch{}
 }
-function releaseWakeLock(){ try{ wakeLock && wakeLock.release(); }catch{} wakeLock = null; }
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible"){ if (state.running) requestWakeLock(); tick(); }
-});
 
-/* ===== 操作 ===== */
-el.start.addEventListener("click", () => state.running ? pause() : start());
-el.reset.addEventListener("click", reset);
+/* =========================================================
+   ポモドーロ
+   ========================================================= */
+let phase = "focus";        // focus | rest
+let lastMidLine = 0, saidLast = false;
+const phaseTotal = () => (phase === "focus" ? settings.focus : settings.rest) * 60 * 1000;
+const pomo = new Countdown(phaseTotal());
+const el = {
+  time: document.getElementById("time"), phase: document.getElementById("phase"), bar: document.getElementById("bar"),
+  start: document.getElementById("startBtn"), reset: document.getElementById("resetBtn"), clock: document.getElementById("clock"),
+};
+
+function renderPomo(){
+  const isRest = phase === "rest";
+  el.time.textContent = fmt(pomo.left());
+  el.phase.textContent = isRest ? "きゅうけい" : "しゅうちゅう";
+  el.phase.classList.toggle("rest", isRest);
+  el.bar.classList.toggle("rest", isRest);
+  el.bar.style.width = `${pomo.progress() * 100}%`;
+  el.start.textContent = pomo.running ? "いちじ停止" : (pomo.left() < pomo.total ? "つづける" : "はじめる");
+}
+
+function pomoStart(){
+  unlockAudio();
+  const fresh = pomo.left() >= pomo.total;
+  pomo.start();
+  lastMidLine = Date.now();
+  if (fresh){
+    saidLast = false;
+    if (phase === "focus") say(getPeriod(new Date().getHours()) === "midnight" && Math.random() < .5 ? pick(LINES.midnightFocus) : pick(LINES.focusStart));
+    else say(pick(LINES.restStart));
+  }
+  updateWakeLock(); renderPomo();
+}
+function pomoPause(){ pomo.pause(); say(pick(LINES.paused)); updateWakeLock(); renderPomo(); }
+function pomoReset(){
+  phase = "focus"; pomo.set(phaseTotal()); saidLast = false;
+  say(pick(LINES.idle[getPeriod(new Date().getHours())]));
+  updateWakeLock(); renderPomo();
+}
+function pomoFinish(){
+  if (phase === "focus"){
+    addCount(); chime("focus");
+    phase = "rest"; pomo.set(phaseTotal());
+    pomoStart();                   // 休憩は自動でスタート
+  } else {
+    chime("rest");
+    phase = "focus"; pomo.set(phaseTotal());   // 集中は自分で押してはじめる
+    say(pick(LINES.restEnd));
+    updateWakeLock(); renderPomo();
+  }
+}
+function pomoTick(){
+  if (pomo.finished()) return pomoFinish();
+  if (!pomo.running) return;
+  const r = pomo.left();
+  // 途中のひとこと(約4分ごと)と、終わり1分前のひとこと
+  if (phase === "focus" && !saidLast && r <= 60*1000 && pomo.total > 2*60*1000){ saidLast = true; say(pick(LINES.focusLast)); }
+  else if (Date.now() - lastMidLine > 4*60*1000 && r > 60*1000){
+    lastMidLine = Date.now();
+    say(pick(phase === "focus" ? LINES.focusMid : LINES.restMid));
+  }
+}
+
+el.start.addEventListener("click", () => pomo.running ? pomoPause() : pomoStart());
+el.reset.addEventListener("click", pomoReset);
 document.getElementById("speech").addEventListener("click", () => {
-  const p = getPeriod(new Date().getHours());
-  say(state.running ? pick(state.phase === "focus" ? LINES.focusMid : LINES.restMid) : pick(LINES.idle[p]));
+  say(pomo.running ? pick(phase === "focus" ? LINES.focusMid : LINES.restMid) : pick(LINES.idle[getPeriod(new Date().getHours())]));
 });
 
+/* =========================================================
+   キッチン
+   ========================================================= */
+const kTimer = new Countdown(0);
+let kName = "", kMidAt = 0, kSaidLast = false, ringing = false, ringLoop = null, ringStop = null;
+const k = {
+  label: document.getElementById("kLabel"), time: document.getElementById("kTime"), bar: document.getElementById("kBar"),
+  start: document.getElementById("kStart"), presets: document.getElementById("kPresets"),
+  ring: document.getElementById("kring"), ringSub: document.getElementById("kringSub"),
+};
+
+KITCHEN_PRESETS.forEach((p, i) => {
+  const b = document.createElement("button");
+  b.className = "k-preset"; b.dataset.key = "p" + i;
+  b.innerHTML = `<span class="emo">${p.emo}</span><span><span class="nm">${p.name}</span><span class="mn">${p.note ? p.note + "・" : ""}${fmtSec(p.sec)}</span></span>`;
+  b.addEventListener("click", () => kChoose(i));
+  k.presets.appendChild(b);
+});
+
+function renderKitchen(){
+  k.time.textContent = fmt(kTimer.left());
+  k.bar.style.width = `${kTimer.progress() * 100}%`;
+  k.label.textContent = kName || (kTimer.left() > 0 ? "じぶんで設定" : "ゆでるものをえらんでね");
+  k.start.textContent = kTimer.running ? "いちじ停止" : (kTimer.left() > 0 && kTimer.left() < kTimer.total ? "つづける" : "スタート");
+}
+QUICK_TIMERS.forEach((sec, i) => {
+  const b = document.createElement("button");
+  b.className = "k-pill"; b.dataset.key = "q" + i;
+  b.textContent = fmtSec(sec);
+  b.addEventListener("click", () => kChooseQuick(i));
+  document.getElementById("kQuick").appendChild(b);
+});
+
+// 選んでいるボタンを光らせる(key: "p0"=野菜, "q0"=すぐ計る, null=なし)
+function markPreset(key){ document.querySelectorAll(".k-preset,.k-pill").forEach(b => b.classList.toggle("active", b.dataset.key === key)); }
+
+function kChooseQuick(i){
+  const sec = QUICK_TIMERS[i];
+  stopRing();
+  kTimer.set(sec * 1000); kName = `⏱ ${fmtSec(sec)}`;
+  markPreset("q" + i);
+  kStart();
+}
+
+// プリセットを選ぶと、すぐにスタート(手早さ優先)
+function kChoose(i){
+  const p = KITCHEN_PRESETS[i];
+  stopRing();
+  kTimer.set(p.sec * 1000); kName = `${p.emo} ${p.name}${p.note ? "(" + p.note + ")" : ""}`;
+  markPreset("p" + i);
+  kStart();
+}
+function kStart(){
+  unlockAudio();
+  if (kTimer.left() <= 0){ kSay(pick(LINES.kPick)); return; }
+  const fresh = kTimer.left() >= kTimer.total;
+  kTimer.start(); kMidAt = Date.now();
+  if (fresh){ kSaidLast = false; kSay(pick(kName && !kName.startsWith("⏱") ? LINES.kStart : LINES.qStart)); }
+  updateWakeLock(); renderKitchen();
+}
+function kPause(){ kTimer.pause(); kSay(pick(LINES.kPaused)); updateWakeLock(); renderKitchen(); }
+function kReset(){
+  stopRing(); kTimer.set(0); kName = ""; markPreset(null);
+  kSay(pick(LINES.kIdle)); updateWakeLock(); renderKitchen();
+}
+// +30秒/+1分:止まっているときは時間を足すだけ、ゆであがり後は延長してすぐ再スタート
+function kAdd(sec){
+  unlockAudio();
+  if (ringing || (kTimer.left() <= 0 && kName)){
+    stopRing();
+    kTimer.set(sec * 1000);
+    if (kName && !kName.includes("延長")) kName += "(延長)";
+    kTimer.start(); kMidAt = Date.now(); kSaidLast = true;
+    kSay(pick(LINES.kExtend));
+  } else {
+    kTimer.add(sec * 1000);
+    if (!kTimer.running && !kName) markPreset(null);
+  }
+  updateWakeLock(); renderKitchen();
+}
+function kFinish(){
+  kTimer.pause();
+  ringing = true;
+  // 料理のときは「ゆであがり」、すぐ計る・自分で設定のときは「時間だにゃ」
+  const cooking = kName && !kName.startsWith("⏱");
+  document.getElementById("kringBig").textContent = cooking ? "ゆであがったにゃ!" : "時間だにゃ!";
+  k.ringSub.textContent = cooking ? `${kName} できたよ` : `${kName ? kName + " " : ""}おわったよ`;
+  k.ring.classList.add("open");
+  kSay(pick(LINES.kDone));
+  kitchenAlarm();
+  ringLoop = setInterval(kitchenAlarm, 1400);
+  ringStop = setTimeout(stopRing, 90 * 1000);    // 鳴りっぱなしは90秒まで
+  updateWakeLock(); renderKitchen();
+}
+function stopRing(){
+  clearInterval(ringLoop); clearTimeout(ringStop);
+  if (navigator.vibrate) navigator.vibrate(0);
+  if (ringing){ ringing = false; k.ring.classList.remove("open"); updateWakeLock(); }
+}
+function kitchenTick(){
+  if (kTimer.finished()) return kFinish();
+  if (!kTimer.running) return;
+  const r = kTimer.left();
+  if (!kSaidLast && r <= 30*1000 && kTimer.total > 90*1000){ kSaidLast = true; kSay(pick(LINES.kLast)); }
+  else if (Date.now() - kMidAt > 3*60*1000 && r > 30*1000){ kMidAt = Date.now(); kSay(pick(LINES.kMid)); }
+}
+
+k.start.addEventListener("click", () => kTimer.running ? kPause() : kStart());
+document.getElementById("kReset").addEventListener("click", kReset);
+document.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => kAdd(+b.dataset.add)));
+document.getElementById("kStop").addEventListener("click", () => { stopRing(); renderKitchen(); });
+document.getElementById("kSpeech").addEventListener("click", () => kSay(pick(kTimer.running ? LINES.kMid : LINES.kIdle)));
+
+/* =========================================================
+   モード切り替え(ポモドーロ=横 / キッチン=縦)
+   ========================================================= */
+let mode = store.get("mode", "pomodoro");
+function setMode(m){
+  mode = m; store.set("mode", m);
+  document.body.classList.toggle("mode-kitchen", m === "kitchen");
+  document.title = m === "kitchen" ? "猫キッチンタイマー" : "猫ポモドーロ";
+  document.getElementById("rotateText").textContent = m === "kitchen" ? "スマホを縦にしてね" : "スマホを横にしてね";
+  document.getElementById("rotateSwitch").textContent = m === "kitchen" ? "🍅 ポモドーロにもどる" : "🍳 キッチンモードにする";
+  // ホーム画面から開いた全画面のときは、向きを自動で合わせる(できない環境では何もしない)
+  try{ screen.orientation.lock(m === "kitchen" ? "portrait" : "landscape").catch(() => {}); }catch{}
+}
+document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+document.getElementById("rotateSwitch").addEventListener("click", () => setMode(mode === "kitchen" ? "pomodoro" : "kitchen"));
+
+/* ===== 設定パネル ===== */
 const sheet = document.getElementById("sheet");
 function renderSettings(){
   document.getElementById("focusVal").textContent = settings.focus + "分";
@@ -402,17 +655,32 @@ document.getElementById("settingsBtn").addEventListener("click", () => { renderS
 document.getElementById("closeSheet").addEventListener("click", () => sheet.classList.remove("open"));
 sheet.addEventListener("click", e => { if (e.target === sheet) sheet.classList.remove("open"); });
 document.querySelectorAll(".stepper button[data-k]").forEach(b => b.addEventListener("click", () => {
-  const k = b.dataset.k, d = +b.dataset.d;
-  settings[k] = k === "focus" ? Math.min(90, Math.max(5, settings[k] + d)) : Math.min(30, Math.max(1, settings[k] + d));
+  const key = b.dataset.k, d = +b.dataset.d;
+  settings[key] = key === "focus" ? Math.min(90, Math.max(5, settings[key] + d)) : Math.min(30, Math.max(1, settings[key] + d));
   store.set("settings", settings); renderSettings();
   // 止まっているときは、今のフェーズに新しい時間をすぐ反映
-  if (!state.running && k === state.phase){ state.remain = total(); render(); }
+  if (!pomo.running && key === phase){ pomo.set(phaseTotal()); renderPomo(); }
 }));
 document.getElementById("soundBtn").addEventListener("click", () => { settings.sound = !settings.sound; store.set("settings", settings); renderSettings(); unlockAudio(); });
 
+/* ===== 毎0.5秒の更新(両方のタイマーは裏でも同時に進む) ===== */
+function tick(){
+  pomoTick(); kitchenTick();
+  renderPomo(); renderKitchen();
+  const now = new Date();
+  const hm = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+  el.clock.textContent = hm; document.getElementById("kClock").textContent = hm;
+  setBackground(now.getHours(), getWeather());
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible"){ wakeLock = null; updateWakeLock(); tick(); }
+});
+
 /* ===== 起動 ===== */
+setMode(mode);
 renderCount();
 say(pick(LINES.idle[getPeriod(new Date().getHours())]));
+kSay(pick(LINES.kIdle));
 tick();
 setInterval(tick, 500);
 
