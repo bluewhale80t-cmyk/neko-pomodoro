@@ -76,6 +76,9 @@
   .speech::after{content:"";position:absolute;right:-10px;bottom:14px;border:8px solid transparent;
     border-left-color:rgba(255,250,242,.92)}
   .speech .name{font-size:11px;color:#b07a5a;font-weight:800;display:block}
+  .speech{display:flex;align-items:center;gap:12px;padding-left:10px}
+  .speech .avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:none;
+    border:2px solid #f3d7b8;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 
   /* ===================== キッチン(縦画面) ===================== */
   #kitchen{position:fixed;inset:0;display:none;flex-direction:column;gap:12px;
@@ -128,6 +131,10 @@
   #kring.open{display:flex}
   #kring .big{font-size:clamp(30px,9vw,48px);font-weight:800;color:var(--kitchen);animation:pulse 1s ease-in-out infinite}
   #kring .sub{font-size:16px;opacity:.9}
+  #kring .ring-cat{width:clamp(120px,36vw,170px);height:clamp(120px,36vw,170px);border-radius:50%;object-fit:cover;
+    border:4px solid var(--kitchen);box-shadow:0 0 0 8px rgba(255,211,110,.18),0 8px 24px rgba(0,0,0,.35);
+    animation:hop .9s ease-in-out infinite}
+  @keyframes hop{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-14px) rotate(-4deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-7px) rotate(4deg)}}
   #kring .k-row{width:min(420px,100%)}
   #kring .stop{flex:none;width:min(420px,100%);font-size:24px;padding:22px}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
@@ -135,7 +142,14 @@
   /* 設定パネル */
   .sheet{position:fixed;inset:0;background:rgba(10,8,20,.5);display:none;align-items:center;justify-content:center;z-index:10}
   .sheet.open{display:flex}
-  .sheet .card{background:#2b2442;border:1px solid var(--glass-line);border-radius:20px;padding:18px 22px;width:min(380px,90vw)}
+  .sheet .card{background:#2b2442;border:1px solid var(--glass-line);border-radius:20px;padding:18px 22px;width:min(420px,92vw);
+    max-height:92vh;overflow-y:auto}
+  .snd{margin:12px 0;font-size:15px}
+  .snd-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .snd-list button{border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--text);
+    font:inherit;font-size:13px;padding:6px 12px;border-radius:999px;cursor:pointer}
+  .snd-list button.on{background:var(--accent);color:#3a2a1a;border-color:transparent;font-weight:800}
+  .snd-note{font-size:12px;opacity:.7}
   .sheet h2{font-size:16px;margin-bottom:12px}
   .row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font-size:15px}
   .stepper{display:flex;align-items:center;gap:10px}
@@ -180,14 +194,17 @@
         <button class="chip icon-btn" id="settingsBtn" aria-label="設定">⚙</button>
       </div>
     </div>
-    <div class="speech" id="speech"><span class="name">ねこ</span><span class="say"></span></div>
+    <div class="speech" id="speech"><img class="avatar" src="img/cat-icon.webp" alt=""><div><span class="name">ねこ</span><span class="say"></span></div></div>
   </div>
 
   <!-- キッチン(縦) -->
   <div id="kitchen">
     <div class="k-top">
       <div class="chip" id="kClock">--:--</div>
-      <button class="chip icon-btn" data-mode="pomodoro" aria-label="ポモドーロモード">🍅 ポモドーロ</button>
+      <div style="display:flex;gap:8px">
+        <button class="chip icon-btn" data-mode="pomodoro" aria-label="ポモドーロモード">🍅 ポモドーロ</button>
+        <button class="chip icon-btn" id="kSettingsBtn" aria-label="設定">⚙</button>
+      </div>
     </div>
     <div class="k-card">
       <div class="k-label" id="kLabel">ゆでるものをえらんでね</div>
@@ -204,10 +221,11 @@
     </div>
     <div class="k-quick" id="kQuick"><span class="lbl">⏱ すぐ計る</span></div>
     <div class="k-presets" id="kPresets"></div>
-    <div class="speech k-speech" id="kSpeech"><span class="name">ねこ</span><span class="say"></span></div>
+    <div class="speech k-speech" id="kSpeech"><img class="avatar" src="img/cat-icon.webp" alt=""><div><span class="name">ねこ</span><span class="say"></span></div></div>
   </div>
 
   <div id="kring">
+    <img class="ring-cat" src="img/cat-icon.webp" alt="">
     <div class="big" id="kringBig">ゆであがったにゃ!</div>
     <div class="sub" id="kringSub"></div>
     <button class="k-btn main stop" id="kStop">とめる</button>
@@ -222,7 +240,9 @@
       <h2>せってい</h2>
       <div class="row"><span>集中</span><div class="stepper"><button data-k="focus" data-d="-5">−</button><b id="focusVal">25分</b><button data-k="focus" data-d="5">+</button></div></div>
       <div class="row"><span>休憩</span><div class="stepper"><button data-k="rest" data-d="-1">−</button><b id="restVal">5分</b><button data-k="rest" data-d="1">+</button></div></div>
-      <div class="row"><span>ポモドーロの音</span><div class="stepper"><button id="soundBtn" style="width:auto;padding:0 14px;border-radius:999px;font-size:14px">ON</button></div></div>
+      <div class="snd"><span>ポモドーロの音</span><div class="snd-list" data-snd="pomoSound"></div></div>
+      <div class="snd"><span>キッチンの音</span><div class="snd-list" data-snd="kitchenSound"></div></div>
+      <p class="snd-note">押すと試し聞きできるよ</p>
       <button class="btn close" id="closeSheet">とじる</button>
     </div>
   </div>
@@ -263,7 +283,7 @@ const KITCHEN_PRESETS = [
 ];
 
 // すぐ計る(料理以外にもなんでも使える時間)。秒で書く
-const QUICK_TIMERS = [180, 300];
+const QUICK_TIMERS = [180, 300, 600];
 
 // セリフ用の時間帯の区切り(時)
 function getPeriod(h){
@@ -317,7 +337,9 @@ const todayStr = () => { const t = new Date(); return `${t.getFullYear()}-${Stri
 const fmt = ms => { const s = Math.ceil(ms / 1000); return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`; };
 const fmtSec = sec => sec % 60 === 0 ? `${sec/60}分` : (sec < 60 ? `${sec}秒` : `${Math.floor(sec/60)}分${sec%60}秒`);
 
-const settings = Object.assign({ focus: 25, rest: 5, sound: true }, store.get("settings", {}));
+const settings = Object.assign({ focus: 25, rest: 5, pomoSound: "pororon", kitchenSound: "pipi" }, store.get("settings", {}));
+// 前の版の「音 ON/OFF」設定を引き継ぐ
+if ("sound" in settings){ if (settings.sound === false) settings.pomoSound = "off"; delete settings.sound; }
 
 /* =========================================================
    タイマーの心臓部(ポモドーロとキッチンで共通)
@@ -419,18 +441,46 @@ function tone(freq, at, len, type = "sine", vol = .25){
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + len);
   o.connect(g).connect(audioCtx.destination); o.start(t); o.stop(t + len + .05);
 }
+/* ===== アラーム音の種類 =====
+   録音ファイルは使わず、全部プログラムで鳴らしている(軽い)。
+   増やしたいときは SOUNDS に1つ足して、SOUND_NAMES に名前を書く。 */
+const SOUND_NAMES = { pororon: "ポロロン", pipi: "ピピピッ", bell: "チリン", nyan: "にゃーん" };
+const SOUNDS = {
+  // やさしいチャイム(down=true で下がるポロン)
+  pororon(down){ (down ? [1175, 988] : [784, 988, 1175]).forEach((f, i) => tone(f, i * .22, .9)); },
+  // 高めで離れていても聞こえるピピピッ
+  pipi(){ [0, .16, .32].forEach(at => tone(1568, at, .13, "triangle", .45)); tone(2093, .52, .25, "triangle", .4); },
+  // 風鈴っぽいチリンチリン(基音+少しの金属っぽい倍音)
+  bell(){ [0, .3].forEach(at => { tone(2637, at, 1.3, "sine", .28); tone(2637 * 2.76, at, .35, "sine", .06); tone(3951, at, .6, "sine", .08); }); },
+  // それっぽい「にゃーん」:音程を上げて下げる+声っぽいフィルター
+  nyan(){
+    const t = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(), lfo = audioCtx.createOscillator(), lfoG = audioCtx.createGain();
+    const f = audioCtx.createBiquadFilter(), g = audioCtx.createGain();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.linearRampToValueAtTime(900, t + .2);
+    o.frequency.linearRampToValueAtTime(820, t + .45);
+    o.frequency.exponentialRampToValueAtTime(480, t + .85);
+    lfo.frequency.value = 7; lfoG.gain.value = 14; lfo.connect(lfoG).connect(o.frequency);   // ゆらぎ
+    f.type = "bandpass"; f.Q.value = 2.2;
+    f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(1700, t + .25); f.frequency.linearRampToValueAtTime(1000, t + .85);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.55, t + .06);
+    g.gain.setValueAtTime(.55, t + .55); g.gain.exponentialRampToValueAtTime(.001, t + .9);
+    o.connect(f).connect(g).connect(audioCtx.destination);
+    o.start(t); lfo.start(t); o.stop(t + .95); lfo.stop(t + .95);
+  },
+};
+function playSound(name, opt){ if (audioCtx && SOUNDS[name]) SOUNDS[name](opt); }
+
 function chime(kind){
   if (navigator.vibrate) navigator.vibrate(kind === "focus" ? [180,90,180] : [120]);
-  if (!settings.sound || !audioCtx) return;
-  const notes = kind === "focus" ? [784, 988, 1175] : [1175, 988];   // ポロロン
-  notes.forEach((f, i) => tone(f, i * 0.22, .9));
+  if (settings.pomoSound !== "off") playSound(settings.pomoSound, kind === "rest");
 }
-// キッチン用:少し高めで、離れていても聞こえるピピピッ
+// キッチン用:とめるまで繰り返し鳴らす
 function kitchenAlarm(){
   if (navigator.vibrate) navigator.vibrate([250,120,250,120,250]);
-  if (!audioCtx) return;
-  [0, .16, .32].forEach(at => tone(1568, at, .13, "triangle", .45));
-  tone(2093, .52, .25, "triangle", .4);
+  playSound(settings.kitchenSound);
 }
 
 /* ===== 画面を点けっぱなしにする(Wake Lock) ===== */
@@ -649,9 +699,23 @@ const sheet = document.getElementById("sheet");
 function renderSettings(){
   document.getElementById("focusVal").textContent = settings.focus + "分";
   document.getElementById("restVal").textContent = settings.rest + "分";
-  document.getElementById("soundBtn").textContent = settings.sound ? "ON" : "OFF";
+  document.querySelectorAll(".snd-list button").forEach(b => b.classList.toggle("on", settings[b.parentNode.dataset.snd] === b.dataset.v));
 }
-document.getElementById("settingsBtn").addEventListener("click", () => { renderSettings(); sheet.classList.add("open"); });
+// 音の選択ボタンを作る(ポモドーロには「なし」もある)
+document.querySelectorAll(".snd-list").forEach(list => {
+  const key = list.dataset.snd;
+  const opts = (key === "pomoSound" ? [["off", "なし"]] : []).concat(Object.entries(SOUND_NAMES));
+  opts.forEach(([v, label]) => {
+    const b = document.createElement("button");
+    b.dataset.v = v; b.textContent = label;
+    b.addEventListener("click", () => {
+      settings[key] = v; store.set("settings", settings); renderSettings();
+      unlockAudio(); if (v !== "off") playSound(v);
+    });
+    list.appendChild(b);
+  });
+});
+document.querySelectorAll("#settingsBtn,#kSettingsBtn").forEach(b => b.addEventListener("click", () => { renderSettings(); sheet.classList.add("open"); }));
 document.getElementById("closeSheet").addEventListener("click", () => sheet.classList.remove("open"));
 sheet.addEventListener("click", e => { if (e.target === sheet) sheet.classList.remove("open"); });
 document.querySelectorAll(".stepper button[data-k]").forEach(b => b.addEventListener("click", () => {
@@ -661,7 +725,7 @@ document.querySelectorAll(".stepper button[data-k]").forEach(b => b.addEventList
   // 止まっているときは、今のフェーズに新しい時間をすぐ反映
   if (!pomo.running && key === phase){ pomo.set(phaseTotal()); renderPomo(); }
 }));
-document.getElementById("soundBtn").addEventListener("click", () => { settings.sound = !settings.sound; store.set("settings", settings); renderSettings(); unlockAudio(); });
+store.set("settings", settings);
 
 /* ===== 毎0.5秒の更新(両方のタイマーは裏でも同時に進む) ===== */
 function tick(){
