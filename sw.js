@@ -1,6 +1,6 @@
 // 更新したら VERSION の数字を上げると、スマホ側にも新しい版が届く
-const VERSION = "neko-pomo-v6";
-const CORE = ["./", "index.html", "manifest.json", "img/sunny_night.webp", "img/sunny_night21.webp", "img/sunny_midnight.webp", "img/cat-icon.webp", "img/icon-192.png", "img/icon-512.png"];
+const VERSION = "neko-pomo-v7";
+const CORE = ["./", "index.html", "manifest.json", "img/sunny_night.webp", "img/sunny_night21.webp", "img/sunny_midnight.webp", "img/cat-icon.webp", "img/sunny_morning1.webp", "img/sunny_morning2.webp", "img/sunny_morning3.webp", "img/sunny_morning4.webp", "img/sunny_morning5.webp", "img/sunny_morning6.webp", "img/icon-192.png", "img/icon-512.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

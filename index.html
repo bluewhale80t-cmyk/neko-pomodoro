@@ -261,7 +261,12 @@
    該当する絵がない時間帯は仮のグラデーション、
    雨の日に雨用の絵がなければ晴れの絵+雨の演出になる。
    ========================================================= */
+// src を [ ] で複数書くと、その時間帯に入るたびにランダムで1枚選ばれる
 const BG_SLOTS = [
+  { weather: "sunny", from: 5,  to: 12, src: [                             // 5:00〜11:59(朝・ランダム)
+    "img/sunny_morning1.webp", "img/sunny_morning2.webp", "img/sunny_morning3.webp",
+    "img/sunny_morning4.webp", "img/sunny_morning5.webp", "img/sunny_morning6.webp",
+  ] },
   { weather: "sunny", from: 18, to: 21, src: "img/sunny_night.webp" },    // 18:00〜20:59
   { weather: "sunny", from: 21, to: 22, src: "img/sunny_night21.webp" },  // 21:00〜21:59
   { weather: "sunny", from: 22, to: 5,  src: "img/sunny_midnight.webp" }, // 22:00〜4:59(日またぎ)
@@ -287,16 +292,22 @@ const QUICK_TIMERS = [180, 300, 600];
 
 // セリフ用の時間帯の区切り(時)
 function getPeriod(h){
-  if (h >= 5  && h < 11) return "morning";
-  if (h >= 11 && h < 18) return "afternoon";
+  if (h >= 5  && h < 12) return "morning";    // 5:00〜11:59(朝の絵と合わせる)
+  if (h >= 12 && h < 18) return "afternoon";
   if (h >= 18 && h < 22) return "night";     // 18:00〜21:59
   return "midnight";                          // 22:00〜4:59
 }
 
+// 複数枚の時間帯は、その時間帯に入ったときに1枚だけ選んで、時間帯が終わるまで同じ絵にする
+const bgPick = new Map();
 function findBg(weather, h){
   const hit = BG_SLOTS.find(s => s.weather === weather &&
     (s.from < s.to ? (h >= s.from && h < s.to) : (h >= s.from || h < s.to)));
-  return hit ? hit.src : null;
+  if (!hit) return null;
+  if (!Array.isArray(hit.src)) return hit.src;
+  if (!bgPick.has(hit)) bgPick.set(hit, hit.src[Math.floor(Math.random() * hit.src.length)]);
+  for (const s of bgPick.keys()) if (s !== hit && s.weather === weather) bgPick.delete(s);   // 抜けた時間帯は次回また選び直す
+  return bgPick.get(hit);
 }
 
 /* ===== セリフ ===== */
@@ -381,7 +392,8 @@ function setBackground(hour, weather){
   if (!src && weather === "rainy") src = findBg("sunny", hour);   // 雨画像がなければ晴れで代用
   const key = src || "ph-" + period;
   // 雨用の画像がまだない雨の日は、雨粒の演出を重ねる
-  rainCanvas.classList.toggle("on", weather === "rainy" && !own);
+  // (キッチンは見やすさ優先で雨の演出なし)
+  rainCanvas.classList.toggle("on", weather === "rainy" && !own && mode !== "kitchen");
   if (key === currentBgKey) return;
   currentBgKey = key;
   const back = frontBg === bgA ? bgB : bgA;
