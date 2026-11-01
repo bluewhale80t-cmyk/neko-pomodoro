@@ -149,22 +149,30 @@
   #kring{position:fixed;inset:0;z-index:15;display:none;flex-direction:column;align-items:center;
     justify-content:center;gap:18px;padding:24px;background:rgba(40,26,10,.72);
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-align:center}
-  #kring.open{display:flex}
+  #kring.open{display:flex;animation:fadeIn 200ms ease-out}
+  @keyframes fadeIn{from{opacity:0}}
+  @keyframes pop{from{transform:scale(.85)}}
   #kring .big{font-size:clamp(30px,9vw,48px);font-weight:800;color:var(--kitchen);animation:pulse 1s ease-in-out infinite}
   #kring .sub{font-size:16px;opacity:.9}
   #kring .ring-cat{width:clamp(120px,36vw,170px);height:clamp(120px,36vw,170px);border-radius:50%;object-fit:cover;
     border:4px solid var(--kitchen);box-shadow:0 0 0 8px rgba(255,211,110,.18),0 8px 24px rgba(0,0,0,.35);
-    animation:hop .9s ease-in-out infinite}
+    animation:pop 400ms cubic-bezier(0.34,1.56,0.64,1),hop .9s ease-in-out 400ms infinite}
   @keyframes hop{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-14px) rotate(-4deg)}50%{transform:translateY(0) rotate(0)}75%{transform:translateY(-7px) rotate(4deg)}}
   #kring .k-row{width:min(420px,100%)}
   #kring .stop{flex:none;width:min(420px,100%);font-size:24px;padding:22px}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 
   /* 設定パネル */
-  .sheet{position:fixed;inset:0;background:rgba(10,8,20,.5);display:none;align-items:center;justify-content:center;z-index:10}
-  .sheet.open{display:flex}
+  /* 開くときは220msでふわっと、閉じるときは150msで素早く */
+  .sheet{position:fixed;inset:0;background:rgba(10,8,20,.5);display:flex;align-items:center;justify-content:center;z-index:10;
+    opacity:0;visibility:hidden;pointer-events:none;transition:opacity 150ms ease-out,visibility 0s linear 150ms}
+  .sheet.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 220ms var(--ease-out),visibility 0s}
   .sheet .card{background:#2b2442;border:1px solid var(--glass-line);border-radius:20px;padding:18px 22px;width:min(420px,92vw);
-    max-height:92vh;overflow-y:auto}
+    max-height:92vh;overflow-y:auto;transform:scale(.96);transition:transform 150ms ease-out}
+  .sheet.open .card{transform:none;transition:transform 220ms var(--ease-out)}
+  .sheet .sec{font-size:13px;color:var(--accent);letter-spacing:.08em;margin:14px 0 2px;padding-top:12px;
+    border-top:1px solid var(--glass-line)}
+  .sheet h2 + .sec{border-top:none;padding-top:0;margin-top:4px}
   .snd{margin:12px 0;font-size:15px}
   .snd-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .snd-list button{border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--text);
@@ -192,6 +200,27 @@
   @keyframes tiltBack{0%,30%{transform:rotate(-90deg)}60%,100%{transform:rotate(0)}}
   @media (orientation:portrait){ body:not(.mode-kitchen) #rotate{display:flex} }
   @media (orientation:landscape) and (max-height:540px){ body.mode-kitchen #rotate{display:flex} }
+
+  /* 🍅の数が増えたとき1回だけ弾む */
+  #count.bump{animation:bump 300ms var(--ease-out)}
+  @keyframes bump{50%{transform:scale(1.15)}}
+
+  /* ===== PC(マウス操作の端末):回転のお願いは出さず、キッチンは中央の縦長カードに ===== */
+  @media (hover:hover) and (pointer:fine){
+    #rotate{display:none !important}
+    body.mode-kitchen #kitchen{left:0;right:0;margin:0 auto;width:min(440px,100%);top:20px;bottom:20px;
+      border-radius:28px;background:rgba(24,18,44,.28);border:1px solid var(--glass-line);
+      box-shadow:0 12px 40px rgba(0,0,0,.35);padding:16px 16px 14px}
+    body.mode-kitchen .bg{background-position:center;filter:blur(6px) brightness(.6);transform:scale(1.06)}
+    .k-time{font-size:clamp(72px,24vw,112px)}
+  }
+
+  /* 端末で「視差効果を減らす」がオンなら、動きを止めてフェードだけにする */
+  @media (prefers-reduced-motion:reduce){
+    #count.bump,#kring .ring-cat,#kring .big,#rotate .phone{animation:none}
+    .sheet .card,.sheet.open .card{transform:none;transition:none}
+    .bar i{transition:none}
+  }
 </style>
 </head>
 <body>
@@ -268,12 +297,15 @@
   <div class="sheet" id="sheet">
     <div class="card">
       <h2>せってい</h2>
+      <h3 class="sec">🍅 ポモドーロ</h3>
       <div class="row"><span>集中</span><div class="stepper"><button data-k="focus" data-d="-5">−</button><b id="focusVal">25分</b><button data-k="focus" data-d="5">+</button></div></div>
       <div class="row"><span>休憩</span><div class="stepper"><button data-k="rest" data-d="-1">−</button><b id="restVal">5分</b><button data-k="rest" data-d="1">+</button></div></div>
       <div class="row"><span>くり返す回数</span><div class="stepper"><button data-k="repeat" data-d="-1">−</button><b id="repeatVal">4回</b><button data-k="repeat" data-d="1">+</button></div></div>
       <div class="row"><span>長い休憩</span><div class="stepper"><button data-k="longRest" data-d="-5">−</button><b id="longRestVal">15分</b><button data-k="longRest" data-d="5">+</button></div></div>
       <div class="row"><span>自動で次の集中を始める</span><button class="toggle" id="autoNext">オフ</button></div>
+      <h3 class="sec">🕰 表示</h3>
       <div class="row"><span>時刻の表示</span><div style="display:flex;gap:6px"><button class="toggle" data-clock="24">24時間</button><button class="toggle" data-clock="12">12時間</button></div></div>
+      <h3 class="sec">🔔 音</h3>
       <div class="snd"><span>ポモドーロの音</span><div class="snd-list" data-snd="pomoSound"></div></div>
       <div class="snd"><span>キッチンの音</span><div class="snd-list" data-snd="kitchenSound"></div></div>
       <p class="snd-note">押すと試し聞きできるよ</p>
@@ -425,7 +457,16 @@ function getWeather(){
 
 /* ===== 今日のポモドーロ数 ===== */
 function getCount(){ const c = store.get("count", null); return (c && c.date === todayStr()) ? c.n : 0; }
-function addCount(){ const n = getCount() + 1; store.set("count", { date: todayStr(), n }); renderCount(); }
+function addCount(){
+  const n = getCount() + 1; store.set("count", { date: todayStr(), n }); renderCount();
+  const c = document.getElementById("count"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump");
+}
+// バーは進むときだけなめらかに。戻るとき(リセット・次のフェーズ)は一瞬で戻す
+function setBar(bar, p){
+  const prev = +(bar.dataset.p || 0);
+  bar.style.transition = p < prev ? "none" : "";
+  bar.style.width = `${p * 100}%`; bar.dataset.p = p;
+}
 function renderCount(){ document.getElementById("count").textContent = `🍅 ${getCount()}`; }
 
 /* ===== 背景 ===== */
@@ -577,7 +618,7 @@ function renderPomo(){
   el.cycle.textContent = `${Math.min(cycle, settings.repeat)}/${settings.repeat}`;
   el.phase.classList.toggle("rest", isRest);
   el.bar.classList.toggle("rest", isRest);
-  el.bar.style.width = `${pomo.progress() * 100}%`;
+  setBar(el.bar, pomo.progress());
   el.start.textContent = pomo.running ? "いちじ停止" : (pomo.left() < pomo.total ? "つづける" : "はじめる");
 }
 
@@ -664,7 +705,7 @@ KITCHEN_PRESETS.forEach((p, i) => {
 
 function renderKitchen(){
   k.time.textContent = fmt(kTimer.left());
-  k.bar.style.width = `${kTimer.progress() * 100}%`;
+  setBar(k.bar, kTimer.progress());
   k.label.textContent = kName || (kTimer.left() > 0 ? "じぶんで設定" : "ゆでるものをえらんでね");
   k.start.textContent = kTimer.running ? "いちじ停止" : (kTimer.left() > 0 && kTimer.left() < kTimer.total ? "つづける" : "スタート");
 }
