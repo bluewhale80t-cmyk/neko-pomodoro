@@ -172,7 +172,14 @@
   .sheet.open .card{transform:none;transition:transform 220ms var(--ease-out)}
   .sheet .sec{font-size:13px;color:var(--accent);letter-spacing:.08em;margin:14px 0 2px;padding-top:12px;
     border-top:1px solid var(--glass-line)}
-  .sheet h2 + .sec{border-top:none;padding-top:0;margin-top:4px}
+  .grp > .sec:first-child{border-top:none;padding-top:0;margin-top:4px}
+  /* 集中枠の⏱からはポモドーロだけ、右上の⚙からは表示と音だけを出す */
+  .sheet[data-view="pomo"] [data-grp="general"],.sheet[data-view="general"] [data-grp="pomo"]{display:none}
+  /* 集中枠の右上の小さなボタン */
+  .timer{position:relative}
+  .timer .tune{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);
+    font-size:15px;line-height:30px;opacity:.85}
+  .timer .tune:active{transform:scale(.92)}
   .snd{margin:12px 0;font-size:15px}
   .snd-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
   .snd-list button{border:1px solid var(--glass-line);background:rgba(255,255,255,.08);color:var(--text);
@@ -244,6 +251,7 @@
     </div>
     <div class="bottom">
       <div class="timer">
+        <button class="icon-btn tune" id="pomoSettingsBtn" aria-label="ポモドーロの設定">⏱</button>
         <div class="phase-row"><span class="phase" id="phase">しゅうちゅう</span><span class="cycle" id="cycle">1/4</span></div>
         <div class="time" id="time">25:00</div>
         <div class="bar"><i id="bar"></i></div>
@@ -296,19 +304,22 @@
 
   <div class="sheet" id="sheet">
     <div class="card">
-      <h2>せってい</h2>
-      <h3 class="sec">🍅 ポモドーロ</h3>
+      <h2 id="sheetTitle">せってい</h2>
+      <div class="grp" data-grp="pomo">
       <div class="row"><span>集中</span><div class="stepper"><button data-k="focus" data-d="-5">−</button><b id="focusVal">25分</b><button data-k="focus" data-d="5">+</button></div></div>
       <div class="row"><span>休憩</span><div class="stepper"><button data-k="rest" data-d="-1">−</button><b id="restVal">5分</b><button data-k="rest" data-d="1">+</button></div></div>
       <div class="row"><span>くり返す回数</span><div class="stepper"><button data-k="repeat" data-d="-1">−</button><b id="repeatVal">4回</b><button data-k="repeat" data-d="1">+</button></div></div>
       <div class="row"><span>長い休憩</span><div class="stepper"><button data-k="longRest" data-d="-5">−</button><b id="longRestVal">15分</b><button data-k="longRest" data-d="5">+</button></div></div>
       <div class="row"><span>自動で次の集中を始める</span><button class="toggle" id="autoNext">オフ</button></div>
+      </div>
+      <div class="grp" data-grp="general">
       <h3 class="sec">🕰 表示</h3>
       <div class="row"><span>時刻の表示</span><div style="display:flex;gap:6px"><button class="toggle" data-clock="24">24時間</button><button class="toggle" data-clock="12">12時間</button></div></div>
       <h3 class="sec">🔔 音</h3>
       <div class="snd"><span>ポモドーロの音</span><div class="snd-list" data-snd="pomoSound"></div></div>
       <div class="snd"><span>キッチンの音</span><div class="snd-list" data-snd="kitchenSound"></div></div>
       <p class="snd-note">押すと試し聞きできるよ</p>
+      </div>
       <button class="btn close" id="closeSheet">とじる</button>
     </div>
   </div>
@@ -842,7 +853,13 @@ document.querySelectorAll(".snd-list").forEach(list => {
     list.appendChild(b);
   });
 });
-document.querySelectorAll("#settingsBtn,#kSettingsBtn").forEach(b => b.addEventListener("click", () => { renderSettings(); sheet.classList.add("open"); }));
+function openSheet(view){
+  sheet.dataset.view = view;
+  document.getElementById("sheetTitle").textContent = view === "pomo" ? "🍅 ポモドーロのせってい" : "せってい";
+  renderSettings(); sheet.classList.add("open");
+}
+document.getElementById("pomoSettingsBtn").addEventListener("click", () => openSheet("pomo"));
+document.querySelectorAll("#settingsBtn,#kSettingsBtn").forEach(b => b.addEventListener("click", () => openSheet("general")));
 document.getElementById("closeSheet").addEventListener("click", () => sheet.classList.remove("open"));
 sheet.addEventListener("click", e => { if (e.target === sheet) sheet.classList.remove("open"); });
 document.querySelectorAll(".stepper button[data-k]").forEach(b => b.addEventListener("click", () => {
